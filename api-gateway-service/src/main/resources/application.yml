@@ -11,58 +11,61 @@ spring:
       port: ${REDIS_PORT:6379}
   cloud:
     gateway:
-      routes:
-        - id: user-service
-          uri: ${USER_SERVICE_URL:http://localhost:8081}
-          predicates:
-            - Path=/user/**
-          filters:
-            - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: ${USER_SERVICE_URL:http://localhost:8081}
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    key-resolver: "#{@userKeyResolver}"
+                    redis-rate-limiter.replenishRate: 1
+                    redis-rate-limiter.burstCapacity: 10
 
-        - id: graph-service
-          uri: ${GRAPH_SERVICE_URL:http://localhost:8082}
-          predicates:
-            - Path=/graph/**
-          filters:
-            - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
+            - id: graph-service
+              uri: ${GRAPH_SERVICE_URL:http://localhost:8082}
+              predicates:
+                - Path=/graph/**
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 10
+                    redis-rate-limiter.burstCapacity: 20
 
-        - id: post-service
-          uri: ${POST_SERVICE_URL:http://localhost:8083}
-          predicates:
-            - Path=/post/**
-          filters:
-            - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 15
-                redis-rate-limiter.burstCapacity: 30
+            - id: post-service
+              uri: ${POST_SERVICE_URL:http://localhost:8083}
+              predicates:
+                - Path=/post/**
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 15
+                    redis-rate-limiter.burstCapacity: 30
 
-        - id: notification-service
-          uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
-          predicates:
-            - Path=/notification/**
-          filters:
-            - StripPrefix=1
-            - name: RequestRateLimiter
-              args:
-                redis-rate-limiter.replenishRate: 20
-                redis-rate-limiter.burstCapacity: 40
+            - id: notification-service
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+              predicates:
+                - Path=/notification/**
+              filters:
+                - StripPrefix=1
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
 
-        - id: ws-notification
-          uri: ${WS_NOTIFICATION_URL:ws://localhost:8084}
-          predicates:
-            - Path=/ws/notification/**
-          filters:
-            - StripPrefix=2
-            - AddRequestHeader=X-User-Id, #{request.headers['X-User-Id']}
+            - id: ws-notification
+              uri: ${WS_NOTIFICATION_URL:ws://localhost:8084}
+              predicates:
+                - Path=/ws/notification/**
+              filters:
+                - StripPrefix=2
+                - AddRequestHeader=X-User-Id, {request.headers['X-User-Id']}
 
 management:
   endpoints:
@@ -78,11 +81,13 @@ otel:
       endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
 
 jwt:
-  secret: ${JWT_SECRET:needtochangeitneedtochangeit}
+  secret: ${JWT_RSA_PUBLIC_KEY}
   header: Authorization
   prefix: Bearer
 
 logging:
   level:
     root: INFO
-    com.example.gateway: DEBUG
+#    org.springframework.cloud.gateway: DEBUG
+#    org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter: DEBUG
+
