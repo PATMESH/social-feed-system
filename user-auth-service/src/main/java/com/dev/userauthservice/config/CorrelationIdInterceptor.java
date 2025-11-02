@@ -10,12 +10,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.UUID;
 
+import static com.dev.userauthservice.constants.ApplicationConstants.CORRELATION_ID_HEADER;
+
 @Component
 @Slf4j
 @RequiredArgsConstructor
 public class CorrelationIdInterceptor implements HandlerInterceptor {
 
-    private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
     private final RequestContext requestContext;
 
     @Override
@@ -36,8 +37,7 @@ public class CorrelationIdInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
-                                Object handler, Exception ex) {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         MDC.clear();
     }
 }

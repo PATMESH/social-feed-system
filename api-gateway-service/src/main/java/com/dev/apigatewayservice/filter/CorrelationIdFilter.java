@@ -11,11 +11,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+import static com.dev.apigatewayservice.constant.ApplicationConstant.CORRELATION_ID_HEADER;
+
 @Slf4j
 @Component
 public class CorrelationIdFilter implements GlobalFilter, Ordered {
-
-    private static final String CORRELATION_ID_HEADER = "X-Correlation-Id";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
