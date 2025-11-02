@@ -15,7 +15,7 @@ import static com.dev.apigatewayservice.constant.ApplicationConstant.CORRELATION
 
 @Slf4j
 @Component
-public class CorrelationIdFilter implements GlobalFilter, Ordered {
+public class    CorrelationIdFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -36,7 +36,8 @@ public class CorrelationIdFilter implements GlobalFilter, Ordered {
 
         exchange.getResponse().getHeaders().add(CORRELATION_ID_HEADER, finalCorrelationId);
 
-        return chain.filter(exchange.mutate().request(request).build());
+        return chain.filter(exchange.mutate().request(request).build())
+                .contextWrite(ctx -> ctx.put("correlationId", finalCorrelationId));
     }
 
     @Override

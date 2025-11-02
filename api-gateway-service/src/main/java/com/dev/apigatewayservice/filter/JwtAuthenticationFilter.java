@@ -21,6 +21,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.List;
 
+import static com.dev.apigatewayservice.constant.ApplicationConstant.USER_ID_HEADER;
+
 @Slf4j
 @Component
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
@@ -86,7 +88,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
             log.debug("JWT validated successfully for user: {}", userId);
 
             ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
-                    .header("X-User-Id", userId)
+                    .header(USER_ID_HEADER, userId)
                     .build();
 
             return chain.filter(exchange.mutate().request(mutatedRequest).build());
