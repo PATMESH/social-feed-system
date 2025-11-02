@@ -1,5 +1,6 @@
 package com.dev.userauthservice.service;
 
+import com.dev.userauthservice.config.RequestContext;
 import com.dev.userauthservice.dto.request.LoginRequest;
 import com.dev.userauthservice.dto.request.RefreshTokenRequest;
 import com.dev.userauthservice.dto.request.SignupRequest;
@@ -9,6 +10,8 @@ import com.dev.userauthservice.entity.User;
 import com.dev.userauthservice.exception.AuthenticationException;
 import com.dev.userauthservice.exception.DuplicateResourceException;
 import com.dev.userauthservice.exception.InvalidTokenException;
+import com.dev.userauthservice.kafka.event.UserCreatedEvent;
+import com.dev.userauthservice.kafka.producer.KafkaEventProducer;
 import com.dev.userauthservice.repository.UserRepository;
 import com.dev.userauthservice.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
+
+import static com.dev.userauthservice.constants.ApplicationConstants.*;
 
 @Slf4j
 @Service
@@ -29,18 +35,24 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final KafkaEventProducer kafkaEventProducer;
+    private final RequestContext requestContext;
 
     private static final long ACCESS_TOKEN_VALIDITY_MS = 10 * 60 * 1000; // 10 mins
     private static final String DEFAULT_ROLE = "USER";
 
     @Transactional
     public AuthResponse registerUser(SignupRequest request) {
+        String correlationId = requestContext.getCorrelationId();
+
         log.debug("Registering new user: {}", request.getUsername());
 
         validateUniqueUser(request.getUsername(), request.getEmail());
 
         User user = createUser(request);
         User savedUser = userRepository.save(user);
+
+        publishUserCreatedEvent(savedUser, correlationId);
 
         log.info("User registered successfully with ID: {}", savedUser.getId());
         return generateAuthResponse(savedUser);
@@ -141,5 +153,28 @@ public class AuthService {
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .build();
+    }
+
+    // TODO: Need to implement transactional outbox pattern to maintain consistency (if kafka is down)
+    private void publishUserCreatedEvent(User user, String correlationId) {
+        try {
+            UserCreatedEvent event = UserCreatedEvent.builder()
+                    .userId(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .createdAt(user.getCreatedAt())
+                    .build();
+
+            kafkaEventProducer.publishEvent(
+                    USER_EVENTS,
+                    USER_CREATED,
+                    user.getId().toString(),
+                    event,
+                    correlationId
+            );
+        } catch (Exception e) {
+            log.error("Error publishing user created event for user ID: {} [CorrelationId: {}]",
+                    user.getId(), correlationId, e);
+        }
     }
 }
