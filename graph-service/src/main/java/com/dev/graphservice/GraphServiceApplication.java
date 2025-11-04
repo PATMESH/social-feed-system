@@ -9,5 +9,4 @@ public class GraphServiceApplication {
     public static void main(String[] args) {
         SpringApplication.run(GraphServiceApplication.class, args);
     }
-
 }
