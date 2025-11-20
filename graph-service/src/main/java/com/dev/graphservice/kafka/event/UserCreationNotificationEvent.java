@@ -1,4 +1,4 @@
-package com.dev.userauthservice.kafka.event;
+package com.dev.graphservice.kafka.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCreatedEvent {
+public class UserCreationNotificationEvent {
     private Long userId;
     private String username;
     private String email;

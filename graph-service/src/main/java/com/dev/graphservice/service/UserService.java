@@ -1,7 +1,7 @@
-package com.dev.gremlin_ogm.service;
+package com.dev.graphservice.service;
 
-import com.dev.gremlin_ogm.core.GremlinGraphRepository;
-import com.dev.gremlin_ogm.model.User;
+import com.dev.graphservice.core.GremlinGraphRepository;
+import com.dev.graphservice.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

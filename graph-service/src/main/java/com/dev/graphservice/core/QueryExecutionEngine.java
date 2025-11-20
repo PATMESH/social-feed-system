@@ -1,4 +1,4 @@
-package com.dev.gremlin_ogm.core;
+package com.dev.graphservice.core;
 
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
 import org.apache.tinkerpop.gremlin.structure.Direction;

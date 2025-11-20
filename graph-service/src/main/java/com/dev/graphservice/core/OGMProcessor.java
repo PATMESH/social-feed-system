@@ -1,4 +1,4 @@
-package com.dev.gremlin_ogm.core;
+package com.dev.graphservice.core;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

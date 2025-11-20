@@ -1,4 +1,4 @@
-package com.dev.gremlin_ogm.config;
+package com.dev.graphservice.config;
 
 import org.apache.tinkerpop.gremlin.driver.Client;
 import org.apache.tinkerpop.gremlin.driver.Cluster;

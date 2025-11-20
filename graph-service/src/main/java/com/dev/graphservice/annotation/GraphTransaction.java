@@ -1,4 +1,4 @@
-package com.dev.gremlin_ogm.annotations;
+package com.dev.graphservice.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

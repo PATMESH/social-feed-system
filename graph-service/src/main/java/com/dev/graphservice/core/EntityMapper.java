@@ -1,4 +1,4 @@
-package com.dev.gremlin_ogm.core;
+package com.dev.graphservice.core;
 
 import com.dev.gremlin_ogm.annotations.GraphEdge;
 import com.dev.gremlin_ogm.annotations.GraphVertex;

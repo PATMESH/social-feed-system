@@ -1,7 +1,7 @@
-package com.dev.gremlin_ogm.model;
+package com.dev.graphservice.model;
 
-import com.dev.gremlin_ogm.annotations.GraphEdge;
-import com.dev.gremlin_ogm.annotations.GraphVertex;
+import com.dev.graphservice.annotation.GraphEdge;
+import com.dev.graphservice.annotation.GraphVertex;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
