@@ -15,7 +15,7 @@ spring:
         webflux:
           routes:
             - id: user-service
-              uri: ${USER_SERVICE_URL:http://localhost:8081}
+              uri: ${USER_SERVICE_URL:http://localhost:8991}
               predicates:
                 - Path=/auth/**
               filters:
@@ -27,7 +27,7 @@ spring:
                     redis-rate-limiter.burstCapacity: 10
 
             - id: graph-service
-              uri: ${GRAPH_SERVICE_URL:http://localhost:8082}
+              uri: ${GRAPH_SERVICE_URL:http://localhost:8992}
               predicates:
                 - Path=/graph/**
               filters:
@@ -38,7 +38,7 @@ spring:
                     redis-rate-limiter.burstCapacity: 20
 
             - id: post-service
-              uri: ${POST_SERVICE_URL:http://localhost:8083}
+              uri: ${POST_SERVICE_URL:http://localhost:8993}
               predicates:
                 - Path=/post/**
               filters:
@@ -49,7 +49,7 @@ spring:
                     redis-rate-limiter.burstCapacity: 30
 
             - id: notification-service
-              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8084}
+              uri: ${NOTIFICATION_SERVICE_URL:http://localhost:8994}
               predicates:
                 - Path=/notification/**
               filters:
@@ -60,7 +60,7 @@ spring:
                     redis-rate-limiter.burstCapacity: 40
 
             - id: ws-notification
-              uri: ${WS_NOTIFICATION_URL:ws://localhost:8084}
+              uri: ${WS_NOTIFICATION_URL:ws://localhost:8995}
               predicates:
                 - Path=/ws/notification/**
               filters:
@@ -84,6 +84,9 @@ jwt:
   secret: ${JWT_RSA_PUBLIC_KEY}
   header: Authorization
   prefix: Bearer
+
+server:
+  port: ${API_GATEWAY_SERVICE_SERVER_PORT:8990}
 
 logging:
   level:
