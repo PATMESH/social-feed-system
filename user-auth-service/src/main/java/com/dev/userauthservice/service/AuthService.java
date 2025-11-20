@@ -16,6 +16,7 @@ import com.dev.userauthservice.repository.UserRepository;
 import com.dev.userauthservice.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,10 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final KafkaEventProducer kafkaEventProducer;
     private final RequestContext requestContext;
+
+    @Value("${app.kafka.topics.user-events}")
+    private String userEventsTopic;
+
 
     private static final long ACCESS_TOKEN_VALIDITY_MS = 10 * 60 * 1000; // 10 mins
     private static final String DEFAULT_ROLE = "USER";
@@ -166,7 +171,7 @@ public class AuthService {
                     .build();
 
             kafkaEventProducer.publishEvent(
-                    USER_EVENTS,
+                    userEventsTopic,
                     USER_CREATED,
                     user.getId().toString(),
                     event,

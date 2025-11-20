@@ -17,6 +17,7 @@ public class CloudEvent<T> {
     private String specVersion;
     private String type;
     private String dataContentType;
+    private String subject;
     private Instant time;
     private String correlationId;
     private T data;

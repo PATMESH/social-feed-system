@@ -33,5 +33,4 @@ public final class ApplicationConstants {
 
     public static final String USER_CREATED = "com.dev.user.created";
 
-    public static final String USER_EVENTS = "user-events";
 }
