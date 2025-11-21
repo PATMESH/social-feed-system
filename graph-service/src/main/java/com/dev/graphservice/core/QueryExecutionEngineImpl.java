@@ -75,8 +75,8 @@ public class QueryExecutionEngineImpl implements QueryExecutionEngine {
     }
 
     @Override
-    public Object link(GraphTraversalSource g, String fromLabel, Map<String, Object> fromProps,
-                       String toLabel, Map<String, Object> toProps, String edgeLabel, Map<String, Object> edgeProps) {
+    public void link(GraphTraversalSource g, String fromLabel, Map<String, Object> fromProps,
+                     String toLabel, Map<String, Object> toProps, String edgeLabel, Map<String, Object> edgeProps) {
         Vertex fromV = getOrCreateVertex(g, fromLabel, fromProps);
         Vertex toV = getOrCreateVertex(g, toLabel, toProps);
 
@@ -84,7 +84,6 @@ public class QueryExecutionEngineImpl implements QueryExecutionEngine {
         if (edgeProps != null) edgeProps.forEach(edge::property);
         Object edgeId = edge.id().next();
         log.info("Edge created with id: {}", edgeId);
-        return edgeId;
     }
 
     @Override

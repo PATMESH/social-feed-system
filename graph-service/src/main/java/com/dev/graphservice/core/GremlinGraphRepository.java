@@ -48,6 +48,8 @@ public interface GremlinGraphRepository {
 
     void createEdgeBetween(Object from, Object to, String label, Map<String, Object> edgeProps);
 
+    void createEdgeBetween(Object from, Object to, String label, Direction direction);
+
     void createEdgesBetween(Object from, List<Object> toList, String label, Direction direction);
 
     void deleteEdge(Object fromId, Object toId, String edgeLabel);

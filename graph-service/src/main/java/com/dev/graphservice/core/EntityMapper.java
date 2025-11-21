@@ -1,7 +1,7 @@
 package com.dev.graphservice.core;
 
-import com.dev.gremlin_ogm.annotations.GraphEdge;
-import com.dev.gremlin_ogm.annotations.GraphVertex;
+import com.dev.graphservice.annotation.GraphEdge;
+import com.dev.graphservice.annotation.GraphVertex;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.springframework.stereotype.Component;

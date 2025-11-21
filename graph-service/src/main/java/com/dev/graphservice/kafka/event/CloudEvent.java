@@ -19,5 +19,5 @@ public class CloudEvent<T> {
     private String dataContentType;
     private Instant time;
     private String correlationId;
-    private T data;
+    private UserCreatedEvent data;
 }

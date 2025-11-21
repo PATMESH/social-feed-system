@@ -101,13 +101,13 @@ public class UserController {
         }
     }
 
-    @PostMapping("/{fromUserId}/link/{toUserId}")
-    public ResponseEntity<ApiResponse<Void>> linkUsers(
+    @PostMapping("/{fromUserId}/follow/{toUserId}")
+    public ResponseEntity<ApiResponse<Void>> followUsers(
             @PathVariable Long fromUserId,
             @PathVariable Long toUserId,
-            @RequestParam(defaultValue = "FRIENDS") String relation) {
+            @RequestParam(defaultValue = "following") String relation) {
         try {
-            userService.linkUsers(fromUserId, toUserId, relation);
+            userService.followUsers(fromUserId, toUserId, relation);
             return ResponseEntity.ok(ApiResponse.success("Users linked successfully", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -115,11 +115,11 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/{fromUserId}/unlink/{toUserId}")
-    public ResponseEntity<ApiResponse<Void>> unlinkUsers(
+    @DeleteMapping("/{fromUserId}/unfollow/{toUserId}")
+    public ResponseEntity<ApiResponse<Void>> unFollowUsers(
             @PathVariable Long fromUserId,
             @PathVariable Long toUserId,
-            @RequestParam(defaultValue = "FRIENDS") String relation) {
+            @RequestParam(defaultValue = "following") String relation) {
         try {
             userService.deleteUserRelation(fromUserId, toUserId, relation);
             return ResponseEntity.ok(ApiResponse.success("Relation deleted successfully", null));
@@ -129,25 +129,25 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{userId}/friends")
-    public ResponseEntity<ApiResponse<List<User>>> getFriends(@PathVariable Long userId) {
+    @GetMapping("/{userId}/followings")
+    public ResponseEntity<ApiResponse<List<User>>> getFollowings(@PathVariable Long userId) {
         try {
-            List<User> friends = userService.getUserFriends(userId);
-            return ResponseEntity.ok(ApiResponse.success("Friends fetched successfully", friends));
+            List<User> followings = userService.getFollowings(userId);
+            return ResponseEntity.ok(ApiResponse.success("Followings fetched successfully", followings));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error retrieving friends", e.getMessage()));
+                    .body(ApiResponse.error("Error retrieving followings", e.getMessage()));
         }
     }
 
-    @GetMapping("/{userId}/friends-of")
-    public ResponseEntity<ApiResponse<List<User>>> getFriendsOf(@PathVariable Long userId) {
+    @GetMapping("/{userId}/followers")
+    public ResponseEntity<ApiResponse<List<User>>> getFollowers(@PathVariable Long userId) {
         try {
-            List<User> friendsOf = userService.getFriendsOf(userId);
-            return ResponseEntity.ok(ApiResponse.success("Friends of fetched successfully", friendsOf));
+            List<User> followers = userService.getFollowers(userId);
+            return ResponseEntity.ok(ApiResponse.success("Followers fetched successfully", followers));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error retrieving friends of", e.getMessage()));
+                    .body(ApiResponse.error("Error retrieving followers", e.getMessage()));
         }
     }
 

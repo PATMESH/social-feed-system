@@ -29,8 +29,8 @@ public interface QueryExecutionEngine {
 
     long countAll(GraphTraversalSource g);
 
-    Object link(GraphTraversalSource g, String fromLabel, Map<String, Object> fromProps,
-                String toLabel, Map<String, Object> toProps, String edgeLabel, Map<String, Object> edgeProps);
+    void link(GraphTraversalSource g, String fromLabel, Map<String, Object> fromProps,
+              String toLabel, Map<String, Object> toProps, String edgeLabel, Map<String, Object> edgeProps);
 
     void addEdgeBetween(GraphTraversalSource g, Object fromId, Object toId, String edgeLabel, Direction direction);
 

@@ -1,9 +1,11 @@
 package com.dev.graphservice.service;
 
 import com.dev.graphservice.core.GremlinGraphRepository;
+import com.dev.graphservice.kafka.event.UserCreatedEvent;
 import com.dev.graphservice.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,8 +47,8 @@ public class UserService {
         repo.deleteAll(User.class);
     }
 
-    public void linkUsers(Object fromUserId, Object toUserId, String relationLabel) {
-        repo.createEdgeBetween(fromUserId, toUserId, relationLabel, null);
+    public void followUsers(Object fromUserId, Object toUserId, String relationLabel) {
+        repo.createEdgeBetween(fromUserId, toUserId, relationLabel, Direction.OUT);
     }
 
     public void deleteUserRelation(Object fromUserId, Object toUserId, String relationLabel) {
@@ -54,15 +56,25 @@ public class UserService {
         log.info("Deleted relation {} between users {} and {}", relationLabel, fromUserId, toUserId);
     }
 
-    public List<User> getUserFriends(Object userId) {
-        return repo.traverseOutgoing(User.class, userId, "FRIEND_OF");
+    public List<User> getFollowings(Object userId) {
+        return repo.traverseOutgoing(User.class, userId, "following");
     }
 
-    public List<User> getFriendsOf(Object userId) {
-        return repo.traverseIncoming(User.class, userId, "FRIEND_OF");
+    public List<User> getFollowers(Object userId) {
+        return repo.traverseIncoming(User.class, userId, "following");
     }
 
     public List<User> getBidirectionalConnections(Object userId) {
-        return repo.traverseBoth(User.class, userId, "FRIEND_OF");
+        return repo.traverseBoth(User.class, userId, "following");
+    }
+
+    public void createUserFromEvent(UserCreatedEvent userEvent) {
+        User user = User.builder()
+                .userId(userEvent.getUserId())
+                .name(userEvent.getUsername())
+                .email(userEvent.getEmail())
+                .build();
+        createUser(user);
+        log.info("Created User: {}", user);
     }
 }

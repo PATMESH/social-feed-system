@@ -97,12 +97,12 @@ public class OGMProcessor {
         return queryExecution.countVertices(g, label);
     }
 
-    public Object link(GraphTraversalSource g, Object from, Object to, String label, Map<String, Object> edgeProps) {
+    public void link(GraphTraversalSource g, Object from, Object to, String label, Map<String, Object> edgeProps) {
         String fromLabel = mapper.resolveLabel(from.getClass());
         String toLabel = mapper.resolveLabel(to.getClass());
         Map<String, Object> fromProps = mapper.extractProperties(from);
         Map<String, Object> toProps = mapper.extractProperties(to);
-        return queryExecution.link(g, fromLabel, fromProps, toLabel, toProps, label, edgeProps);
+        queryExecution.link(g, fromLabel, fromProps, toLabel, toProps, label, edgeProps);
     }
 
     public List<Map<Object, Object>> traverse(GraphTraversalSource g, Object from, String edgeLabel) {

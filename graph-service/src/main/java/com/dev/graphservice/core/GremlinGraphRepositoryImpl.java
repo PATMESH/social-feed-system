@@ -143,9 +143,19 @@ public class GremlinGraphRepositoryImpl implements GremlinGraphRepository {
     }
 
     @Override
+    public void createEdgeBetween(Object from, Object to, String label, Direction direction) {
+        tx.execute(g -> {
+            queryExecution.addEdgeBetween(g, from, to, label, direction);
+            return null;
+        });
+    }
+
+    @Override
     public void createEdgesBetween(Object from, List<Object> toList, String label,  Direction direction) {
         tx.execute(g -> {
-            queryExecution.addEdgeBetween(g, from, toList, label, direction);
+            toList.parallelStream().forEach(toId -> {
+                queryExecution.addEdgeBetween(g, from, toId, label, direction);
+            });
             return null;
         });
     }

@@ -2,6 +2,25 @@ spring:
   application:
   name: graph-service
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: graph-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: latest
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+
+    listener:
+      ack-mode: record
+
+app:
+  kafka:
+    topics:
+      user-events: user-events
+
 gremlin:
   host: localhost
   port: 8182
@@ -12,5 +31,9 @@ gremlin:
 logging:
   level:
     root: INFO
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    org:
+      apache:
+        kafka: WARN
+
+server:
+  port: ${GRAPH_SERVICE_SERVER_PORT:8992}
