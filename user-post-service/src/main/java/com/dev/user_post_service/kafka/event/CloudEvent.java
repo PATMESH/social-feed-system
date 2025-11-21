@@ -1,4 +1,4 @@
-package com.dev.userauthservice.kafka.event;
+package com.dev.user_post_service.kafka.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,6 @@
-package com.dev.userauthservice.kafka.config;
+package com.dev.user_post_service.kafka.config;
 
-import com.dev.userauthservice.kafka.event.CloudEvent;
+import com.dev.user_post_service.kafka.event.CloudEvent;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;

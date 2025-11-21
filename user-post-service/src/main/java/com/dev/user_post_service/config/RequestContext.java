@@ -1,4 +1,4 @@
-package com.dev.userauthservice.config;
+package com.dev.user_post_service.config;
 
 import lombok.Data;
 import org.springframework.context.annotation.Scope;

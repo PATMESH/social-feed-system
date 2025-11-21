@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: user-post-service
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/user_post
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      spring.json.add.type.headers: false
+
+app:
+  graph-service-url: http://localhost:8992
+  kafka:
+    topics:
+      post-events: ${KAFKA_POST_EVENTS_TOPIC:post-events}
+
+server:
+  port: ${POST_MANAGEMENT_SERVICE_SERVER_PORT:8993}
+
+logging:
+  level:
+    root: INFO
+    org:
+      apache:
+        kafka: INFO

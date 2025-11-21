@@ -12,9 +12,9 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserCreatedEvent {
+public class PostCreatedEvent {
+    private UUID postId;
     private UUID userId;
-    private String username;
-    private String email;
     private Instant createdAt;
 }
+

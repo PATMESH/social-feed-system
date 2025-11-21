@@ -1,6 +1,6 @@
-package com.dev.userauthservice.kafka.producer;
+package com.dev.user_post_service.kafka.producer;
 
-import com.dev.userauthservice.kafka.event.CloudEvent;
+import com.dev.user_post_service.kafka.event.CloudEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -28,7 +29,7 @@ public class KafkaEventProducer {
     private static final String SPEC_VERSION = "1.0";
     private static final String CONTENT_TYPE = "application/json";
 
-    public <T> void publishEvent(
+    public <T> Mono<Void> publishEvent(
             String topic,
             String eventType,
             String key,
@@ -37,29 +38,23 @@ public class KafkaEventProducer {
 
         CloudEvent<T> cloudEvent = buildCloudEvent(eventType, payload, correlationId);
 
-        log.debug("Publishing event - Topic: {}, Type: {}, Key: {}, CorrelationId: {}",
-                topic, eventType, key, correlationId);
-
-        ProducerRecord<String, CloudEvent<?>> record = new ProducerRecord<>(topic, key, cloudEvent);
+        ProducerRecord<String, CloudEvent<?>> record =
+                new ProducerRecord<>(topic, key, cloudEvent);
 
         record.headers()
                 .add("correlation-id", correlationId.getBytes(StandardCharsets.UTF_8))
                 .add("event-type", eventType.getBytes(StandardCharsets.UTF_8))
                 .add("source", applicationName.getBytes(StandardCharsets.UTF_8));
 
-        CompletableFuture<SendResult<String, CloudEvent<?>>> future = kafkaTemplate.send(record);
-
-        future.whenComplete((result, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish event - Topic: {}, Type: {}, Key: {}, CorrelationId: {}",
-                        topic, eventType, key, correlationId, ex);
-            } else {
-                RecordMetadata metadata = result.getRecordMetadata();
-                log.info("Event published successfully - Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
-                        metadata.topic(), metadata.partition(), metadata.offset(), correlationId);
-            }
-        });
-
+        return Mono.fromFuture(kafkaTemplate.send(record))
+                .doOnSuccess(result -> {
+                    RecordMetadata metadata = result.getRecordMetadata();
+                    log.info("Event published successfully - Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
+                            metadata.topic(), metadata.partition(), metadata.offset(), correlationId);
+                })
+                .doOnError(ex -> log.error("Failed to publish event - Topic: {}, Type: {}, Key: {}, CorrelationId: {}",
+                        topic, eventType, key, correlationId, ex))
+                .then();
     }
 
     private <T> CloudEvent<T> buildCloudEvent(String eventType, T payload, String correlationId) {

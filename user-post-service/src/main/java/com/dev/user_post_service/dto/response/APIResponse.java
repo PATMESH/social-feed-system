@@ -1,4 +1,4 @@
-package com.dev.userauthservice.dto.response;
+package com.dev.user_post_service.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

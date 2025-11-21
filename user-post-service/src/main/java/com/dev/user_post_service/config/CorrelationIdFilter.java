@@ -12,8 +12,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static com.dev.userauthservice.constants.ApplicationConstants.CORRELATION_ID_HEADER;
-import static com.dev.userauthservice.constants.ApplicationConstants.USER_ID_HEADER;
+import static com.dev.user_post_service.constant.ApplicationConstants.CORRELATION_ID_HEADER;
+import static com.dev.user_post_service.constant.ApplicationConstants.USER_ID_HEADER;
 
 @Component
 @Slf4j
@@ -37,17 +37,16 @@ public class CorrelationIdFilter implements WebFilter {
         requestContext.setCorrelationId(correlationId);
         requestContext.setUserId(userId);
 
-        // Put in MDC for logs during the filter execution
         MDC.put("correlationId", correlationId);
         if (userId != null) MDC.put("userId", userId);
 
         log.debug("Request started - Method: {}, URI: {}, CorrelationId: {}",
                 request.getMethod(), request.getURI(), correlationId);
 
-        // Attach correlation data to Reactor context
+        String finalCorrelationId = correlationId;
         return chain.filter(exchange)
                 .contextWrite(ctx -> ctx
-                        .put("correlationId", correlationId)
+                        .put("correlationId", finalCorrelationId)
                         .put("userId", userId))
                 .doFinally(signalType -> MDC.clear());
     }
