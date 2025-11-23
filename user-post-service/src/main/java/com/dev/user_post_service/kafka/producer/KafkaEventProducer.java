@@ -49,8 +49,8 @@ public class KafkaEventProducer {
         return Mono.fromFuture(kafkaTemplate.send(record))
                 .doOnSuccess(result -> {
                     RecordMetadata metadata = result.getRecordMetadata();
-                    log.info("Event published successfully - Topic: {}, Partition: {}, Offset: {}, CorrelationId: {}",
-                            metadata.topic(), metadata.partition(), metadata.offset(), correlationId);
+                    log.info("Event published successfully - Topic: {}, Partition: {}, CorrelationId: {}",
+                            metadata.topic(), metadata.partition(), correlationId);
                 })
                 .doOnError(ex -> log.error("Failed to publish event - Topic: {}, Type: {}, Key: {}, CorrelationId: {}",
                         topic, eventType, key, correlationId, ex))
