@@ -1,6 +1,5 @@
 package com.dev.user_post_service.config;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -17,10 +16,7 @@ import static com.dev.user_post_service.constant.ApplicationConstants.USER_ID_HE
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class CorrelationIdFilter implements WebFilter {
-
-    private final RequestContext requestContext;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -34,20 +30,14 @@ public class CorrelationIdFilter implements WebFilter {
             correlationId = UUID.randomUUID().toString();
         }
 
-        requestContext.setCorrelationId(correlationId);
-        requestContext.setUserId(userId);
-
         MDC.put("correlationId", correlationId);
         if (userId != null) MDC.put("userId", userId);
-
-        log.debug("Request started - Method: {}, URI: {}, CorrelationId: {}",
-                request.getMethod(), request.getURI(), correlationId);
 
         String finalCorrelationId = correlationId;
         return chain.filter(exchange)
                 .contextWrite(ctx -> ctx
                         .put("correlationId", finalCorrelationId)
                         .put("userId", userId))
-                .doFinally(signalType -> MDC.clear());
+                .doFinally(signal -> MDC.clear());
     }
 }

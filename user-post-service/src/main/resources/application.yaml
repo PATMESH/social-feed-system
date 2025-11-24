@@ -6,6 +6,15 @@ spring:
     url: r2dbc:postgresql://localhost:5432/user_post
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:postgres}
+#
+#  flyway:
+#    enabled: true
+#    url: jdbc:postgresql://localhost:5432/user_post
+#    user: postgres
+#    password: postgres
+#    locations: classpath:db/migration
+#    fail-on-unsupported-database: false
+
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
