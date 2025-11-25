@@ -100,8 +100,6 @@ public class PostService {
         return Mono.deferContextual(ctx -> {
             UUID userId = UUID.fromString(ctx.get("userId"));
 
-            log.info("Getting feed for user {}", graphClient.getFollowings(userId));
-
             return graphClient.getFollowings(userId)
                     .flatMapMany(followingIds ->
                             postRepository.findByUserIdInAndIsDeletedFalseOrderByCreatedAtDesc(

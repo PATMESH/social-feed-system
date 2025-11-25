@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +55,15 @@ public class UserService {
     public void deleteUserRelation(Object fromUserId, Object toUserId, String relationLabel) {
         repo.deleteEdge(fromUserId, toUserId, relationLabel);
         log.info("Deleted relation {} between users {} and {}", relationLabel, fromUserId, toUserId);
+    }
+
+    public List<User> getFollowingsByUserId(UUID userId) {
+        Optional<User> userOpt = repo.findByProperty(User.class, "userId", userId);
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found with userId: " + userId);
+        }
+        Object vertexId = userOpt.get().getId();
+        return getFollowings(vertexId);
     }
 
     public List<User> getFollowings(Object userId) {

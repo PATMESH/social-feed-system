@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -126,6 +127,17 @@ public class GraphController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(ApiResponse.error("Error deleting relation", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/followings/userId/{userId}")
+    public ResponseEntity<ApiResponse<List<User>>> getFollowingsByUserId(@PathVariable UUID userId) {
+        try {
+            List<User> followings = userService.getFollowingsByUserId(userId);
+            return ResponseEntity.ok(ApiResponse.success("Followings fetched successfully", followings));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error retrieving followings", e.getMessage()));
         }
     }
 

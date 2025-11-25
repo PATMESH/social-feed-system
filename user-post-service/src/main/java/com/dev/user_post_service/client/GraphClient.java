@@ -1,5 +1,7 @@
 package com.dev.user_post_service.client;
 
+import com.dev.user_post_service.dto.response.FollowingsResponse;
+import com.dev.user_post_service.dto.response.GraphUser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,36 +26,22 @@ public class GraphClient {
 
     public Mono<List<UUID>> getFollowings(UUID userId) {
         return webClient.get()
-                .uri(graphService + "/api/v1/graph/followings/{id}", userId)
+                .uri(graphService + "/api/users/followings/userId/{userId}", userId)
                 .retrieve()
-                .onStatus(
-                        status -> status.value() == 404,
-                        response -> {
-                            log.info("Followings not found {}", userId);
-                            return Mono.empty();
-                        }
+                .bodyToMono(new ParameterizedTypeReference<FollowingsResponse<List<GraphUser>>>() {})
+                .doOnNext(resp -> {
+                    log.info("[GraphService] Raw followings response for {} -> {}",
+                            userId, resp);
+                })
+                .map(resp -> resp.getData()
+                        .stream()
+                        .map(GraphUser::getUserId)
+                        .toList()
                 )
-                .onStatus(
-                        HttpStatusCode::is4xxClientError,
-                        response -> response.bodyToMono(String.class)
-                                .defaultIfEmpty("Client error")
-                                .flatMap(body -> Mono.error(
-                                        new RuntimeException("Graph service 4xx: " + body)
-                                ))
-                )
-                .onStatus(
-                        HttpStatusCode::is5xxServerError,
-                        response -> response.bodyToMono(String.class)
-                                .defaultIfEmpty("Server error")
-                                .flatMap(body -> Mono.error(
-                                        new RuntimeException("Graph service 5xx: " + body)
-                                ))
-                )
-                .bodyToMono(new ParameterizedTypeReference<List<UUID>>() {})
                 .switchIfEmpty(Mono.just(List.of()))
                 .onErrorResume(e -> {
+                    log.error("Failed to fetch followings for {}: {}", userId, e.getMessage());
                     return Mono.just(List.of());
                 });
     }
-
 }
