@@ -32,6 +32,14 @@ public class PostController {
         return postService.getUserPosts(userId, page, size);
     }
 
+    @GetMapping("/my-post")
+    public Mono<APIResponse<PaginatedResponse<PostResponse>>> getMyPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        return postService.getMyPosts(page, size);
+    }
+
     @GetMapping("/feed")
     public Mono<APIResponse<PaginatedResponse<PostResponse>>> getFeed(
             @RequestParam(defaultValue = "0") int page,

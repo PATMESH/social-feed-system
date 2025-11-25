@@ -1,6 +1,7 @@
 package com.dev.user_post_service.client;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatusCode;
@@ -11,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class GraphClient {
@@ -27,6 +29,7 @@ public class GraphClient {
                 .onStatus(
                         status -> status.value() == 404,
                         response -> {
+                            log.info("Followings not found {}", userId);
                             return Mono.empty();
                         }
                 )

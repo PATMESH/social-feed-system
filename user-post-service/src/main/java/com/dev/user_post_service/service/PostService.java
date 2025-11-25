@@ -36,13 +36,15 @@ public class PostService {
             String correlationId = ctx.get("correlationId");
 
             Post post = Post.builder()
-                    .id(UUID.randomUUID())
                     .userId(userId)
                     .content(req.getContent())
                     .mediaUrl(req.getMediaUrl())
                     .createdAt(Instant.now())
+                    .updatedAt(Instant.now())
                     .isDeleted(false)
                     .build();
+
+            log.info("Creating post {}", post);
 
             return postRepository.save(post)
                     .flatMap(saved ->
@@ -72,9 +74,33 @@ public class PostService {
                 ));
     }
 
+    public Mono<APIResponse<PaginatedResponse<PostResponse>>> getMyPosts(int page, int size) {
+        return Mono.deferContextual(ctx -> {
+            UUID userId = UUID.fromString(ctx.get("userId"));
+
+            return postRepository
+                    .findByUserIdAndIsDeletedFalseOrderByCreatedAtDesc(
+                            userId,
+                            PageRequest.of(page, size)
+                    )
+                    .map(this::toResponse)
+                    .collectList()
+                    .map(list -> APIResponse.success(
+                            PaginatedResponse.<PostResponse>builder()
+                                    .items(list)
+                                    .page(page)
+                                    .size(size)
+                                    .hasNext(list.size() == size)
+                                    .build()
+                    ));
+        });
+    }
+
     public Mono<APIResponse<PaginatedResponse<PostResponse>>> getFeed(int page, int size) {
         return Mono.deferContextual(ctx -> {
             UUID userId = UUID.fromString(ctx.get("userId"));
+
+            log.info("Getting feed for user {}", graphClient.getFollowings(userId));
 
             return graphClient.getFollowings(userId)
                     .flatMapMany(followingIds ->

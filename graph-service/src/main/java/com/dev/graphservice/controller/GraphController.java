@@ -14,7 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserController {
+public class GraphController {
 
     private final UserService userService;
 
