@@ -26,7 +26,7 @@ public class PostFanoutService {
     @Value("${app.notification.batch-size:2000}")
     private int batchSize;
 
-    @Value("${app.kafka.topics.user-notifications}")
+    @Value("${app.kafka.topics.notification-events}")
     private String notificationTopic;
 
     public void process(PostCreatedEvent postEvent, String correlationId) {
@@ -62,7 +62,7 @@ public class PostFanoutService {
 
             kafkaEventProducer.publishEvent(
                     notificationTopic,
-                    "USER-NOTIFICATION",
+                    "POST-NOTIFICATION",
                     postEvent.getUserId().toString(),
                     eventPayload,
                     correlationId

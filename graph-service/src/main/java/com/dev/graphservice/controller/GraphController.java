@@ -1,5 +1,6 @@
 package com.dev.graphservice.controller;
 
+import com.dev.graphservice.config.RequestContext;
 import com.dev.graphservice.dto.ApiResponse;
 import com.dev.graphservice.model.User;
 import com.dev.graphservice.service.UserService;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class GraphController {
 
     private final UserService userService;
+    private final RequestContext requestContext;
 
     @PostMapping
     public ResponseEntity<ApiResponse<User>> createUser(@RequestBody User user) {
@@ -31,22 +33,10 @@ public class GraphController {
         }
     }
 
-    @PostMapping("/map")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> createUserMap(@RequestBody Map<String, Object> userMap) {
-        try {
-            Map<String, Object> saved = userService.saveUser(userMap);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body(ApiResponse.success("User map saved successfully", saved));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(ApiResponse.error("Failed to save user map", e.getMessage()));
-        }
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable UUID id) {
         try {
-            return userService.findUserById(id)
+            return userService.findByUserId(id)
                     .map(user -> ResponseEntity.ok(ApiResponse.success("User found", user)))
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
                             .body(ApiResponse.error("User not found with id: " + id)));
@@ -56,59 +46,11 @@ public class GraphController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
+    @PostMapping("/follow/{toUserId}")
+    public ResponseEntity<ApiResponse<Void>> followUser(@PathVariable UUID toUserId) {
         try {
-            List<User> users = userService.getAllUsers();
-            return ResponseEntity.ok(ApiResponse.success("All users fetched successfully", users));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error retrieving users", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/email/{email}")
-    public ResponseEntity<ApiResponse<User>> findByEmail(@PathVariable String email) {
-        try {
-            return userService.findByEmail(email)
-                    .map(user -> ResponseEntity.ok(ApiResponse.success("User found", user)))
-                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
-                            .body(ApiResponse.error("User not found with email: " + email)));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error retrieving user", e.getMessage()));
-        }
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Long id) {
-        try {
-            userService.deleteUser(id);
-            return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error deleting user", e.getMessage()));
-        }
-    }
-
-    @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> deleteAllUsers() {
-        try {
-            userService.deleteAllUsers();
-            return ResponseEntity.ok(ApiResponse.success("All users deleted successfully", null));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error deleting users", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/{fromUserId}/follow/{toUserId}")
-    public ResponseEntity<ApiResponse<Void>> followUsers(
-            @PathVariable Long fromUserId,
-            @PathVariable Long toUserId,
-            @RequestParam(defaultValue = "following") String relation) {
-        try {
-            userService.followUsers(fromUserId, toUserId, relation);
+            UUID fromUserId = UUID.fromString(requestContext.getUserId());
+            userService.followUser(fromUserId, toUserId, "following", requestContext.getCorrelationId());
             return ResponseEntity.ok(ApiResponse.success("Users linked successfully", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -116,13 +58,11 @@ public class GraphController {
         }
     }
 
-    @DeleteMapping("/{fromUserId}/unfollow/{toUserId}")
-    public ResponseEntity<ApiResponse<Void>> unFollowUsers(
-            @PathVariable Long fromUserId,
-            @PathVariable Long toUserId,
-            @RequestParam(defaultValue = "following") String relation) {
+    @PostMapping("/unfollow/{toUserId}")
+    public ResponseEntity<ApiResponse<Void>> unFollowUser(@PathVariable UUID toUserId) {
         try {
-            userService.deleteUserRelation(fromUserId, toUserId, relation);
+            UUID fromUserId = UUID.fromString(requestContext.getUserId());
+            userService.unFollowUser(fromUserId, toUserId, "following");
             return ResponseEntity.ok(ApiResponse.success("Relation deleted successfully", null));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -130,10 +70,13 @@ public class GraphController {
         }
     }
 
-    @GetMapping("/followings/userId/{userId}")
-    public ResponseEntity<ApiResponse<List<User>>> getFollowingsByUserId(@PathVariable UUID userId) {
+    @GetMapping("/followings")
+    public ResponseEntity<ApiResponse<List<User>>> getFollowings(
+            @RequestParam(required = false) UUID userId
+    ) {
         try {
-            List<User> followings = userService.getFollowingsByUserId(userId);
+            UUID resolvedUserId = (userId != null) ? userId : UUID.fromString(requestContext.getUserId());
+            List<User> followings = userService.getFollowings(resolvedUserId);
             return ResponseEntity.ok(ApiResponse.success("Followings fetched successfully", followings));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -141,21 +84,13 @@ public class GraphController {
         }
     }
 
-    @GetMapping("/{userId}/followings")
-    public ResponseEntity<ApiResponse<List<User>>> getFollowings(@PathVariable Long userId) {
+    @GetMapping("/followers")
+    public ResponseEntity<ApiResponse<List<User>>> getFollowers(
+            @RequestParam(required = false) UUID userId
+    ) {
         try {
-            List<User> followings = userService.getFollowings(userId);
-            return ResponseEntity.ok(ApiResponse.success("Followings fetched successfully", followings));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("Error retrieving followings", e.getMessage()));
-        }
-    }
-
-    @GetMapping("/{userId}/followers")
-    public ResponseEntity<ApiResponse<List<User>>> getFollowers(@PathVariable Long userId) {
-        try {
-            List<User> followers = userService.getFollowers(userId);
+            UUID resolvedUserId = (userId != null) ? userId : UUID.fromString(requestContext.getUserId());
+            List<User> followers = userService.getFollowers(resolvedUserId);
             return ResponseEntity.ok(ApiResponse.success("Followers fetched successfully", followers));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -163,10 +98,13 @@ public class GraphController {
         }
     }
 
-    @GetMapping("/{userId}/connections")
-    public ResponseEntity<ApiResponse<List<User>>> getBidirectionalConnections(@PathVariable Long userId) {
+    @GetMapping("/connections")
+    public ResponseEntity<ApiResponse<List<User>>> getConnections(
+            @RequestParam(required = false) UUID userId
+    ) {
         try {
-            List<User> connections = userService.getBidirectionalConnections(userId);
+            UUID resolvedUserId = (userId != null) ? userId : UUID.fromString(requestContext.getUserId());
+            List<User> connections = userService.getBidirectionalConnections(resolvedUserId);
             return ResponseEntity.ok(ApiResponse.success("Connections fetched successfully", connections));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

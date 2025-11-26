@@ -21,6 +21,7 @@ app:
     topics:
       user-events: user-events
       post-events: post-events
+      notification-events: notification-events
 
 gremlin:
   host: localhost

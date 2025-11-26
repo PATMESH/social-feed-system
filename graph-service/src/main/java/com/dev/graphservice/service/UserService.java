@@ -1,17 +1,18 @@
 package com.dev.graphservice.service;
 
 import com.dev.graphservice.core.GremlinGraphRepository;
+import com.dev.graphservice.exception.UserNotFoundException;
 import com.dev.graphservice.kafka.event.UserCreatedEvent;
+import com.dev.graphservice.kafka.event.UserNotificationEvent;
+import com.dev.graphservice.kafka.producer.KafkaEventProducer;
 import com.dev.graphservice.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -19,13 +20,13 @@ import java.util.UUID;
 public class UserService {
 
     private final GremlinGraphRepository repo;
+    private final KafkaEventProducer eventProducer;
+
+    @Value("${app.kafka.topics.notification-events}")
+    private String notificationTopic;
 
     public User createUser(User user) {
         return repo.save(user);
-    }
-
-    public Map<String, Object> saveUser(Map<String, Object> user) {
-        return repo.save("User", user);
     }
 
     public Optional<User> findUserById(Object id) {
@@ -44,42 +45,68 @@ public class UserService {
         return repo.findByProperty(User.class, "userId", userId);
     }
 
-    public void deleteUser(Object id) {
-        repo.delete(id);
+    public void deleteUser(UUID id) {
+        repo.deleteByProperty(User.class, "userId", id);
     }
 
-    public void deleteAllUsers() {
-        repo.deleteAll(User.class);
+    private Object getVertexIdByUserId(UUID userId) {
+        return findByUserId(userId)
+                .map(User::getId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    public void followUsers(Object fromUserId, Object toUserId, String relationLabel) {
-        repo.createEdgeBetween(fromUserId, toUserId, relationLabel, Direction.OUT);
+    public void followUser(UUID fromUserUuid, UUID toUserUuid, String relationLabel, String correlationId) {
+        Optional<User> fromUser = findByUserId(fromUserUuid);
+        fromUser.orElseThrow(() -> new UserNotFoundException(fromUserUuid));
+        Object fromVertexId = fromUser.map(User::getId);
+        Object toVertexId = getVertexIdByUserId(toUserUuid);
+        repo.createEdgeBetween(fromVertexId, toVertexId, relationLabel, Direction.OUT);
+        log.info("Created {} relation from {} -> {}", relationLabel, fromUserUuid, toUserUuid);
+
+        UserNotificationEvent eventPayload = UserNotificationEvent.builder()
+                .message(fromUser.get().getName())
+                .actorId(fromUserUuid)
+                .notifiers(new ArrayList<>(List.of(toUserUuid)))
+                .build();
+
+        eventProducer.publishEvent(
+                notificationTopic,
+                "FOLLOW-NOTIFICATION",
+                toUserUuid.toString(),
+                eventPayload,
+                correlationId
+        );
     }
 
-    public void deleteUserRelation(Object fromUserId, Object toUserId, String relationLabel) {
-        repo.deleteEdge(fromUserId, toUserId, relationLabel);
-        log.info("Deleted relation {} between users {} and {}", relationLabel, fromUserId, toUserId);
+    public void unFollowUser(UUID fromUserUuid, UUID toUserUuid, String relationLabel) {
+        Object fromVertexId = getVertexIdByUserId(fromUserUuid);
+        Object toVertexId = getVertexIdByUserId(toUserUuid);
+        repo.deleteEdge(fromVertexId, toVertexId, relationLabel);
+        log.info("Deleted {} relation from {} -> {}", relationLabel, fromUserUuid, toUserUuid);
     }
 
     public List<User> getFollowingsByUserId(UUID userId) {
-        Optional<User> userOpt = repo.findByProperty(User.class, "userId", userId);
-        if (userOpt.isEmpty()) {
-            throw new RuntimeException("User not found with userId: " + userId);
+        try {
+            return getFollowings(userId);
+        } catch (RuntimeException ex) {
+            log.error("Failed to fetch followings for userId {}: {}", userId, ex.getMessage());
+            return List.of();
         }
-        Object vertexId = userOpt.get().getId();
-        return getFollowings(vertexId);
     }
 
-    public List<User> getFollowings(Object userId) {
-        return repo.traverseOutgoing(User.class, userId, "following");
+    public List<User> getFollowings(UUID userId) {
+        Object vertexId = getVertexIdByUserId(userId);
+        return repo.traverseOutgoing(User.class, vertexId, "following");
     }
 
-    public List<User> getFollowers(Object userId) {
-        return repo.traverseIncoming(User.class, userId, "following");
+    public List<User> getFollowers(UUID userId) {
+        Object vertexId = getVertexIdByUserId(userId);
+        return repo.traverseIncoming(User.class, vertexId, "following");
     }
 
-    public List<User> getBidirectionalConnections(Object userId) {
-        return repo.traverseBoth(User.class, userId, "following");
+    public List<User> getBidirectionalConnections(UUID userId) {
+        Object vertexId = getVertexIdByUserId(userId);
+        return repo.traverseBoth(User.class, vertexId, "following");
     }
 
     public void createUserFromEvent(UserCreatedEvent userEvent) {
