@@ -1,3 +1,42 @@
 spring:
   application:
     name: notification-service
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/user_notification
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: notification-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: latest
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+
+    listener:
+      ack-mode: record
+
+app:
+  kafka:
+    topics:
+      notification-events: notification-events
+
+logging:
+  level:
+    root: INFO
+    org:
+      apache:
+        kafka: WARN
+
+server:
+  port: ${NOTIFICATION_SERVICE_SERVER_PORT:8994}
