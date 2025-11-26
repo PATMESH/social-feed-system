@@ -40,6 +40,10 @@ public class UserService {
         return repo.findByProperty(User.class, "email", email);
     }
 
+    public Optional<User> findByUserId(UUID userId) {
+        return repo.findByProperty(User.class, "userId", userId);
+    }
+
     public void deleteUser(Object id) {
         repo.delete(id);
     }

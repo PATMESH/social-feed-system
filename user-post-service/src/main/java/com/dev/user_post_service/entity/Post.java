@@ -1,5 +1,6 @@
 package com.dev.user_post_service.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class Post {
     @Column("id")
     private UUID id;
 
+    @JsonIgnore
     @Column("user_id")
     private UUID userId;
 
@@ -36,6 +38,7 @@ public class Post {
     @Column("updated_at")
     private Instant updatedAt;
 
+    @JsonIgnore
     @Column("is_deleted")
     private Boolean isDeleted;
 }

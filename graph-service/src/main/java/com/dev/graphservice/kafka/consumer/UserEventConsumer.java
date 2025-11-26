@@ -21,7 +21,7 @@ public class UserEventConsumer {
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consumeUserCreatedEvent(
-            CloudEvent<?> event,
+            CloudEvent<UserCreatedEvent> event,
             @Header("event-type") String eventType,
             @Header("correlation-id") String correlationId
     ) {
@@ -31,7 +31,7 @@ public class UserEventConsumer {
         graphUserService.createUserFromEvent(userEvent);
     }
 
-    private UserCreatedEvent convert(CloudEvent<?> event) {
+    private UserCreatedEvent convert(CloudEvent<UserCreatedEvent> event) {
         return event.getData();
     }
 }

@@ -6,6 +6,7 @@ import com.dev.user_post_service.dto.response.APIResponse;
 import com.dev.user_post_service.dto.response.PaginatedResponse;
 import com.dev.user_post_service.dto.response.PostResponse;
 import com.dev.user_post_service.entity.Post;
+import com.dev.user_post_service.kafka.event.PostCreatedEvent;
 import com.dev.user_post_service.kafka.producer.KafkaEventProducer;
 import com.dev.user_post_service.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +49,12 @@ public class PostService {
 
             return postRepository.save(post)
                     .flatMap(saved ->
+
                             postEventProducer.publishEvent(
                                     postEventTopic,
                                     "NEW-POST-EVENT",
                                     userId.toString(),
-                                    saved,
+                                    new PostCreatedEvent(saved.getId(), saved.getUserId(), saved.getCreatedAt()),
                                     correlationId
                             ).thenReturn(APIResponse.success(toResponse(saved)))
                     );

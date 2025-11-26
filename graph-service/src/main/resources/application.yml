@@ -20,6 +20,7 @@ app:
   kafka:
     topics:
       user-events: user-events
+      post-events: post-events
 
 gremlin:
   host: localhost
