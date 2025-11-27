@@ -11,7 +11,7 @@ import java.time.Instant;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CloudEvent<T> {
+public class CloudEvent {
     private String id;
     private String source;
     private String specVersion;
@@ -19,5 +19,5 @@ public class CloudEvent<T> {
     private String dataContentType;
     private Instant time;
     private String correlationId;
-    private T data;
+    private UserNotificationEvent data;
 }

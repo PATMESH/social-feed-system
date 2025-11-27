@@ -26,7 +26,7 @@ public class KafkaConsumerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ConsumerFactory<String, CloudEvent<?>> consumerFactory() {
+    public ConsumerFactory<String, CloudEvent> consumerFactory() {
         Map<String, Object> props = new HashMap<>();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         props.put(ConsumerConfig.GROUP_ID_CONFIG, "notification-service-group");
@@ -45,8 +45,8 @@ public class KafkaConsumerConfig {
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, CloudEvent<?>> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, CloudEvent<?>> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, CloudEvent> kafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, CloudEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());

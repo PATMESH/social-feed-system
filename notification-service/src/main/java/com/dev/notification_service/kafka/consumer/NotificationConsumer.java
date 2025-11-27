@@ -1,7 +1,6 @@
 package com.dev.notification_service.kafka.consumer;
 
 import com.dev.notification_service.kafka.event.CloudEvent;
-import com.dev.notification_service.kafka.event.UserNotificationEvent;
 import com.dev.notification_service.service.NotificationProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,7 @@ public class NotificationConsumer {
             topics = "${app.kafka.topics.notification-events}",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consume(CloudEvent<UserNotificationEvent> event,
+    public void consume(CloudEvent event,
                         @Header("event-type") String eventType,
                         @Header("correlation-id") String correlationId,
                         Acknowledgment ack

@@ -29,7 +29,7 @@ public class RedisSubscriber {
     @PostConstruct
     public void subscribe() {
         redis.listenToChannel("node:" + nodeId)
-                .map(ReactiveSubscription.Message::getMessage)
+                .map(m -> m.getMessage())
                 .flatMap(this::deliver)
                 .subscribe();
     }
@@ -54,7 +54,10 @@ public class RedisSubscriber {
 
     private String toJson(Object obj) {
         try { return mapper.writeValueAsString(obj); }
-        catch (Exception e) { return "{}"; }
+        catch (Exception e) {
+            log.info("Error converting json to string: " + e.getMessage());
+            return "{}";
+        }
     }
 
 }

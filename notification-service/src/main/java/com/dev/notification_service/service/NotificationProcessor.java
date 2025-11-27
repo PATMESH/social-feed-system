@@ -4,6 +4,8 @@ import com.dev.notification_service.entity.Notification;
 import com.dev.notification_service.kafka.event.UserNotificationEvent;
 import com.dev.notification_service.repository.NotificationRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -25,7 +27,7 @@ public class NotificationProcessor {
 
     private final NotificationRepository notificationRepository;
     private final ReactiveRedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper;
 
     private final String PRESENCE_KEY = "presence:";
 
@@ -85,7 +87,12 @@ public class NotificationProcessor {
     }
 
     private String toJson(Object obj) {
-        try { return mapper.writeValueAsString(obj); }
-        catch (Exception e) { return "{}"; }
+        try {
+            return mapper.writeValueAsString(obj);
+        }
+        catch (Exception e) {
+            log.info("Error converting json to string: " + e.getMessage());
+            return "{}";
+        }
     }
 }
