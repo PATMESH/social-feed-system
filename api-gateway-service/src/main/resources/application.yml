@@ -65,7 +65,7 @@ spring:
                 - Path=/ws/notification/**
               filters:
                 - StripPrefix=2
-                - AddRequestHeader=X-User-Id, {request.headers['X-User-Id']}
+#                - AddRequestHeader=X-User-Id, {request.headers['X-User-Id']}
 
 management:
   endpoints:

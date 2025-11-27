@@ -1,11 +1,10 @@
-package com.dev.notification_service.config;
+package com.dev.ws_notification_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
-import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -19,12 +18,9 @@ public class RedisConfig {
 
         RedisSerializationContext<String, String> ctx =
                 RedisSerializationContext.<String, String>newSerializationContext(
-                                new StringRedisSerializer()
-                        )
-                        .value(new StringRedisSerializer())
-                        .build();
+                        new StringRedisSerializer()
+                ).value(new StringRedisSerializer()).build();
 
         return new ReactiveRedisTemplate<>(factory, ctx);
     }
 }
-

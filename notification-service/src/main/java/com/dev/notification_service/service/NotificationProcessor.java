@@ -3,6 +3,7 @@ package com.dev.notification_service.service;
 import com.dev.notification_service.entity.Notification;
 import com.dev.notification_service.kafka.event.UserNotificationEvent;
 import com.dev.notification_service.repository.NotificationRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.ReactiveRedisTemplate;
@@ -23,7 +24,10 @@ import java.util.stream.Collectors;
 public class NotificationProcessor {
 
     private final NotificationRepository notificationRepository;
-    private final ReactiveRedisTemplate<String, Object> redisTemplate;
+    private final ReactiveRedisTemplate<String, String> redisTemplate;
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final String PRESENCE_KEY = "presence:";
 
     public void processEvent(UserNotificationEvent evt, String eventType, Acknowledgment ack) {
         List<Notification> rows = evt.getNotifiers().stream()
@@ -50,15 +54,38 @@ public class NotificationProcessor {
     }
 
     private Mono<Void> publishToRedis(List<Notification> saved) {
-        Map<UUID, List<Notification>> byUser =
-                saved.stream().collect(Collectors.groupingBy(Notification::getUserId));
 
-        List<Mono<Long>> publishOps = new ArrayList<>();
+        List<Mono<Void>> ops = new ArrayList<>();
 
-        byUser.forEach((userId, notificationsForUser) -> {
-            String channel = "notifications:" + userId;
-            publishOps.add(redisTemplate.convertAndSend(channel, notificationsForUser));
-        });
-        return Mono.when(publishOps).then();
+        for (Notification n : saved) {
+            UUID userId = n.getUserId();
+            String presenceKey = PRESENCE_KEY + n.getUserId();
+
+            ops.add(
+                    redisTemplate.opsForValue()
+                            .get(presenceKey)
+                            .flatMap(nodeId -> {
+                                if (nodeId == null) {
+                                    return Mono.empty();
+                                }
+
+                                String channel = "node:" + nodeId;
+
+                                String payload = toJson(Map.of(
+                                        "userId", userId.toString(),
+                                        "notification", n
+                                ));
+
+                                return redisTemplate.convertAndSend(channel, payload).then();
+                            })
+            );
+        }
+
+        return Mono.when(ops);
+    }
+
+    private String toJson(Object obj) {
+        try { return mapper.writeValueAsString(obj); }
+        catch (Exception e) { return "{}"; }
     }
 }
