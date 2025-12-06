@@ -1,0 +1,17 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/patmeshs/notification-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8994
+  targetPort: 8994
+
+env:
+  DB_HOST: postgres.platform-services.svc.cluster.local
+  DB_PORT: "5432"
+  REDIS_HOST: redis.platform-services.svc.cluster.local
+  KAFKA_BOOTSTRAP: kafka.platform-services.svc.cluster.local:9092

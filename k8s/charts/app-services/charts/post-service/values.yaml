@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/patmeshs/post-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8993
+  targetPort: 8993
+
+env:
+  DB_HOST: postgres.platform-services.svc.cluster.local
+  DB_PORT: "5432"
+  KAFKA_BOOTSTRAP: kafka.platform-services.svc.cluster.local:9092
