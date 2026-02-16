@@ -8,5 +8,5 @@ cd "$SCRIPT_DIR"
 
 docker build -t patmeshs/graph-service:latest .
 
-echo "✓ graph-service image built successfully!"
+echo " graph-service image built successfully!"
 echo "  Image: patmeshs/graph-service:latest"
