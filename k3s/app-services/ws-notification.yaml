@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ws-notification
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ws-notification
+  template:
+    metadata:
+      labels:
+        app: ws-notification
+    spec:
+      containers:
+      - name: ws-notification
+        image: docker.io/patmeshs/ws-notification:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8995
+        env:
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka:9092"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ws-notification
+  namespace: default
+spec:
+  selector:
+    app: ws-notification
+  ports:
+  - port: 8995
+    targetPort: 8995
+  type: ClusterIP

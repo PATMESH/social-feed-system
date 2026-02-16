@@ -1,0 +1,60 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: patmeshs/api-gateway
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8990
+        env:
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        - name: USER_SERVICE_URL
+          value: "http://auth-service:8991"
+        - name: POST_SERVICE_URL
+          value: "http://post-service:8993"
+        - name: NOTIFICATION_SERVICE_URL
+          value: "http://notification-service:8994"
+        - name: WS_NOTIFICATION_URL
+          value: "ws://ws-notification:8995"
+        - name: JWT_RSA_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jwt-keys
+              key: JWT_RSA_PUBLIC_KEY
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: default
+spec:
+  selector:
+    app: api-gateway
+  ports:
+  - port: 80
+    targetPort: 8990
+  type: LoadBalancer

@@ -1,0 +1,59 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: post-service
+  template:
+    metadata:
+      labels:
+        app: post-service
+    spec:
+      containers:
+      - name: post-service
+        image: docker.io/patmeshs/post-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8993
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "social_posts"
+        - name: DB_USER
+          value: "socialfeed"
+        - name: DB_PASSWORD
+          value: "dev123"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka:9092"
+        - name: REDIS_HOST
+          value: "redis"
+        - name: REDIS_PORT
+          value: "6379"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: post-service
+  namespace: default
+spec:
+  selector:
+    app: post-service
+  ports:
+  - port: 8993
+    targetPort: 8993
+  type: ClusterIP

@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: graph-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: graph-service
+  template:
+    metadata:
+      labels:
+        app: graph-service
+    spec:
+      containers:
+      - name: graph-service
+        image: patmeshs/graph-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8992
+        env:
+        - name: GRAPH_SERVICE_SERVER_PORT
+          value: "8992"
+        - name: GREMLIN_HOST
+          value: "janusgraph"
+        - name: GREMLIN_PORT
+          value: "8182"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka:9092"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      initContainers:
+      - name: wait-for-janusgraph
+        image: busybox
+        command: ['sh', '-c', 'until nc -z janusgraph 8182; do echo waiting for janusgraph; sleep 2; done;']
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: graph-service
+  namespace: default
+spec:
+  selector:
+    app: graph-service
+  ports:
+  - port: 8992
+    targetPort: 8992
+  type: ClusterIP

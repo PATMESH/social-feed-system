@@ -1,0 +1,67 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-service
+  template:
+    metadata:
+      labels:
+        app: auth-service
+    spec:
+      containers:
+      - name: auth-service
+        image: docker.io/patmeshs/auth-service:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8991
+        env:
+        - name: DB_HOST
+          value: "postgres"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "social_auth"
+        - name: DB_USER
+          value: "socialfeed"
+        - name: DB_PASSWORD
+          value: "dev123"
+        - name: KAFKA_BOOTSTRAP_SERVERS
+          value: "kafka:9092"
+        - name: KAFKA_USER_EVENTS_TOPIC
+          value: "user-events"
+        - name: JWT_RSA_PRIVATE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jwt-keys
+              key: JWT_RSA_PRIVATE_KEY  
+        - name: JWT_RSA_PUBLIC_KEY
+          valueFrom:
+            secretKeyRef:
+              name: jwt-keys
+              key: JWT_RSA_PUBLIC_KEY
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  namespace: default
+spec:
+  selector:
+    app: auth-service
+  ports:
+  - port: 8991
+    targetPort: 8991
+  type: ClusterIP
