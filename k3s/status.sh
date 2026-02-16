@@ -1,5 +1,4 @@
 #!/bin/bash
-# Quick script to check the status of all services
 
 echo "Cluster Status:"
 k3d cluster list

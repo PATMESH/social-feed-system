@@ -1,19 +1,17 @@
 #!/bin/bash
 set -e
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Building All Microservices${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
-# Get the directory where the script is located
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Check if Docker is running
@@ -22,7 +20,7 @@ if ! docker info >/dev/null 2>&1; then
     exit 1
 fi
 
-# Array of services to build
+# Services to build
 SERVICES=(
     "api-gateway-service"
     "user-auth-service"
@@ -32,11 +30,9 @@ SERVICES=(
     "ws-notification-service"
 )
 
-# Track build status
 FAILED_BUILDS=()
 SUCCESSFUL_BUILDS=()
 
-# Build each service
 for service in "${SERVICES[@]}"; do
     echo -e "${YELLOW}Building $service...${NC}"
     
