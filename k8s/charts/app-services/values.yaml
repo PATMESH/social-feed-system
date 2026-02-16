@@ -1,0 +1,43 @@
+global:
+  namespace: app-services
+
+api-gateway:
+  replicaCount: 2
+  image:
+    repository: myrepo/api-gateway
+    tag: "latest"
+  service:
+    port: 8990
+
+auth-service:
+  replicaCount: 1
+  image:
+    repository: myrepo/auth-service
+    tag: "latest"
+  service:
+    port: 8991
+
+post-service:
+  replicaCount: 1
+  image:
+    repository: myrepo/post-service
+    tag: "latest"
+  service:
+    port: 8993
+
+notification-service:
+  replicaCount: 1
+  image:
+    repository: myrepo/notification-service
+    tag: "latest"
+  service:
+    port: 8994
+
+ws-notification:
+  replicaCount: 1
+  image:
+    repository: myrepo/ws-notification
+    tag: "latest"
+  service:
+    port: 8995
+

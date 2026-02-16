@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: ws-notification-service
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: ${WS_NOTIFICATION_SERVICE_SERVER_PORT:8995}
+
+logging:
+  level:
+    root: INFO
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

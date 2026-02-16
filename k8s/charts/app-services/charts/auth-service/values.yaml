@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/patmeshs/auth-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8991
+  targetPort: 8991
+
+env:
+  DB_HOST: postgres.platform-services.svc.cluster.local
+  DB_PORT: "5432"
+  JWT_SECRET: ""

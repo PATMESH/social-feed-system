@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: docker.io/patmeshs/ws-notification
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 8090
+  targetPort: 8995
+  nodePort: 30090
+
+env:
+  REDIS_HOST: redis.platform-services.svc.cluster.local
+  REDIS_PORT: "6379"

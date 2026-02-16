@@ -1,0 +1,28 @@
+replicaCount: 2
+
+image:
+  repository: docker.io/patmeshs/api-gateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: LoadBalancer
+  port: 80
+  targetPort: 8990
+  nodePort: null
+
+ingress:
+  enabled: true
+  host: api.socialfeed.local
+  path: /
+
+env: 
+  REDIS_HOST: redis.platform-services.svc.cluster.local
+  REDIS_PORT: "6379"
+  USER_SERVICE_URL: http://auth-service.app-services.svc.cluster.local:8991
+  GRAPH_SERVICE_URL: http://post-service.app-services.svc.cluster.local:8992
+  POST_SERVICE_URL: http://post-service.app-services.svc.cluster.local:8993
+  NOTIFICATION_SERVICE_URL: http://notification-service.app-services.svc.cluster.local:8994
+  WS_NOTIFICATION_URL: ws://ws-notification.app-services.svc.cluster.local:8995
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector.platform-services.svc.cluster.local:4317
+  JWT_RSA_PUBLIC_KEY: ""

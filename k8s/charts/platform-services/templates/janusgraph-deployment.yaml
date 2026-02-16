@@ -1,0 +1,50 @@
+{{- if .Values.janusgraph.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: janusgraph
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: janusgraph
+spec:
+  replicas: {{ .Values.janusgraph.replicaCount }}
+  selector:
+    matchLabels:
+      app: janusgraph
+  template:
+    metadata:
+      labels:
+        app: janusgraph
+    spec:
+      containers:
+        - name: janusgraph
+          image: "{{ .Values.janusgraph.image.repository }}:{{ .Values.janusgraph.image.tag }}"
+          imagePullPolicy: {{ .Values.janusgraph.image.pullPolicy }}
+          ports:
+            - name: gremlin
+              containerPort: 8182
+              protocol: TCP
+          env:
+            - name: JANUS_PROPS_TEMPLATE
+              value: "cql"
+            - name: janusgraph.storage.backend
+              value: "{{ .Values.janusgraph.config.storage.backend }}"
+            - name: janusgraph.storage.hostname
+              value: "{{ .Values.janusgraph.config.storage.hostname }}"
+            - name: janusgraph.storage.port
+              value: "{{ .Values.janusgraph.config.storage.port }}"
+            - name: janusgraph.cache.db-cache
+              value: "{{ .Values.janusgraph.config.cache.db-cache }}"
+          resources:
+            {{- toYaml .Values.janusgraph.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: 8182
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8182
+            initialDelaySeconds: 60
+            periodSeconds: 30
+{{- end }}

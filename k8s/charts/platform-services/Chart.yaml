@@ -1,0 +1,31 @@
+apiVersion: v2
+name: platform-services
+description: Platform infrastructure services (PostgreSQL, Kafka, Redis, JanusGraph)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+dependencies:
+  # PostgreSQL for application databases
+  - name: postgresql
+    version: 12.1.9
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+
+  # Redis for caching and session management
+  - name: redis
+    version: 17.8.0
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+  # Kafka for event streaming
+  - name: kafka
+    version: 21.0.0
+    repository: https://charts.bitnami.com/bitnami
+    condition: kafka.enabled
+
+  # Cassandra (backend for JanusGraph)
+  - name: cassandra
+    version: 10.1.1
+    repository: https://charts.bitnami.com/bitnami
+    condition: cassandra.enabled
