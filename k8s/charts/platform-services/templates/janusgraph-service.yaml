@@ -1,0 +1,18 @@
+{{- if .Values.janusgraph.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: janusgraph
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: janusgraph
+spec:
+  type: {{ .Values.janusgraph.service.type }}
+  ports:
+    - port: {{ .Values.janusgraph.service.port }}
+      targetPort: 8182
+      protocol: TCP
+      name: gremlin
+  selector:
+    app: janusgraph
+{{- end }}

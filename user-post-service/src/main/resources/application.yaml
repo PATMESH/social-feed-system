@@ -3,9 +3,9 @@ spring:
     name: user-post-service
 
   r2dbc:
-    url: r2dbc:postgresql://localhost:5432/user_post
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
+    url: r2dbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:user_post}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
 #
 #  flyway:
 #    enabled: true

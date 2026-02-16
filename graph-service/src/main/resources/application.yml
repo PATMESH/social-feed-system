@@ -24,8 +24,8 @@ app:
       notification-events: notification-events
 
 gremlin:
-  host: localhost
-  port: 8182
+  host: ${GREMLIN_HOST:localhost}
+  port: ${GREMLIN_PORT:8182}
   username: null
   password: null
   ssl: false

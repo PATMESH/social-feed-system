@@ -1,0 +1,145 @@
+global:
+  namespace: platform-services
+  storageClass: standard  # Change based on your cloud provider (gp2 for AWS, standard for GKE, etc.)
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  auth:
+    username: socialfeed
+    password: changeme123  # TODO: Use secrets in production
+    database: social_feed
+    postgresPassword: postgres123  # TODO: Use secrets in production
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "1000m"
+  # Create multiple databases for different services
+  initdbScripts:
+    init-databases.sql: |
+      CREATE DATABASE social_auth;
+      CREATE DATABASE social_posts;
+      CREATE DATABASE social_notifications;
+      GRANT ALL PRIVILEGES ON DATABASE social_auth TO socialfeed;
+      GRANT ALL PRIVILEGES ON DATABASE social_posts TO socialfeed;
+      GRANT ALL PRIVILEGES ON DATABASE social_notifications TO socialfeed;
+
+# Redis Configuration
+redis:
+  enabled: true
+  architecture: standalone  # Use 'replication' for HA
+  auth:
+    enabled: false  # Set to true in production with password
+    password: ""
+  master:
+    persistence:
+      enabled: true
+      size: 5Gi
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+# Kafka Configuration
+kafka:
+  enabled: true
+  replicaCount: 1  # Increase to 3 for production
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  # Auto-create topics
+  autoCreateTopicsEnable: true
+  # Kafka listeners
+  listeners:
+    client:
+      protocol: PLAINTEXT
+    controller:
+      protocol: PLAINTEXT
+    interbroker:
+      protocol: PLAINTEXT
+  # Topic configurations
+  extraEnvVars:
+    - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+      value: "true"
+  # Zookeeper (embedded with Bitnami Kafka chart)
+  zookeeper:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 5Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+# Cassandra Configuration (for JanusGraph backend)
+cassandra:
+  enabled: true
+  cluster:
+    replicaCount: 1  # Increase to 3 for production
+  dbUser:
+    user: cassandra
+    password: cassandra123  # TODO: Use secrets in production
+  persistence:
+    enabled: true
+    size: 20Gi
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  # JanusGraph keyspace configuration
+  initDBConfigMap: janusgraph-init-scripts
+
+# JanusGraph Configuration (deployed as a separate deployment)
+janusgraph:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: janusgraph/janusgraph
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8182
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  persistence:
+    enabled: false  # Using Cassandra for storage
+  # JanusGraph configuration
+  config:
+    storage:
+      backend: cql
+      hostname: platform-services-cassandra
+      port: 9042
+    cache:
+      db-cache: true
+      db-cache-clean-wait: 20
+      db-cache-time: 180000

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: janusgraph-init-scripts
+  namespace: {{ .Values.global.namespace }}
+data:
+  init.cql: |
+    CREATE KEYSPACE IF NOT EXISTS janusgraph 
+    WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
