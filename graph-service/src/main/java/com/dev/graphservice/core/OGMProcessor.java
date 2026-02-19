@@ -3,12 +3,14 @@ package com.dev.graphservice.core;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "graph.impl", havingValue = "gremlin", matchIfMissing = true)
 @RequiredArgsConstructor
 public class OGMProcessor {
 

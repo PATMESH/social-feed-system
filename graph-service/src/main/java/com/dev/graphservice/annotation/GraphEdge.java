@@ -1,6 +1,6 @@
 package com.dev.graphservice.annotation;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
+import com.dev.graphservice.enums.Direction;
 
 import java.lang.annotation.*;
 

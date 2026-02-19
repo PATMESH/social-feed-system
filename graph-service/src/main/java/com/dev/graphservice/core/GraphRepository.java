@@ -1,12 +1,12 @@
 package com.dev.graphservice.core;
 
-import org.apache.tinkerpop.gremlin.structure.Direction;
+import com.dev.graphservice.enums.Direction;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public interface GremlinGraphRepository {
+public interface GraphRepository {
 
     <T> T save(T entity);
 

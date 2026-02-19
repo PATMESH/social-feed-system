@@ -8,5 +8,5 @@ cd "$SCRIPT_DIR"
 
 docker build -t patmeshs/post-service:latest .
 
-echo "✓ post-service image built successfully!"
+echo " post-service image built successfully!"
 echo "  Image: patmeshs/post-service:latest"

@@ -29,6 +29,14 @@ spec:
           value: "8182"
         - name: KAFKA_BOOTSTRAP_SERVERS
           value: "kafka:9092"
+        - name: GRAPH_IMPL
+          value: "neo4j"
+        - name: NEO4J_URI
+          value: "bolt://neo4j:7687"
+        - name: NEO4J_USERNAME
+          value: "neo4j"
+        - name: NEO4J_PASSWORD
+          value: "password"
         resources:
           requests:
             memory: "256Mi"
@@ -37,9 +45,20 @@ spec:
             memory: "512Mi"
             cpu: "500m"
       initContainers:
-      - name: wait-for-janusgraph
+      - name: wait-for-graph-db
         image: busybox
-        command: ['sh', '-c', 'until nc -z janusgraph 8182; do echo waiting for janusgraph; sleep 2; done;']
+        env:
+        - name: GRAPH_IMPL
+          value: "neo4j"
+        command: 
+          - 'sh'
+          - '-c'
+          - |
+            if [ "$GRAPH_IMPL" = "neo4j" ]; then
+              until nc -z neo4j 7687; do echo waiting for neo4j; sleep 2; done;
+            else
+              until nc -z janusgraph 8182; do echo waiting for janusgraph; sleep 2; done;
+            fi
 ---
 apiVersion: v1
 kind: Service

@@ -8,5 +8,5 @@ cd "$SCRIPT_DIR"
 
 docker build -t patmeshs/api-gateway:latest .
 
-echo "✓ api-gateway image built successfully!"
+echo " api-gateway image built successfully!"
 echo "  Image: patmeshs/api-gateway:latest"

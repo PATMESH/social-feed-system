@@ -8,5 +8,5 @@ cd "$SCRIPT_DIR"
 
 docker build -t patmeshs/notification-service:latest .
 
-echo "✓ notification-service image built successfully!"
+echo " notification-service image built successfully!"
 echo "  Image: patmeshs/notification-service:latest"

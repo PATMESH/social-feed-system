@@ -5,12 +5,14 @@ import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.GraphTraversalSo
 import org.apache.tinkerpop.gremlin.process.traversal.dsl.graph.__;
 import org.apache.tinkerpop.gremlin.structure.Direction;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 
 @Slf4j
 @Component
+@ConditionalOnProperty(name = "graph.impl", havingValue = "gremlin", matchIfMissing = true)
 public class QueryExecutionEngineImpl implements QueryExecutionEngine {
 
     @Override

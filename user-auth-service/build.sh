@@ -10,5 +10,5 @@ cd "$SCRIPT_DIR"
 # Build Docker image
 docker build -t patmeshs/auth-service:latest .
 
-echo "✓ auth-service image built successfully!"
+echo " auth-service image built successfully!"
 echo "  Image: patmeshs/auth-service:latest"

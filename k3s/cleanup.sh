@@ -8,7 +8,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     echo "Deleting cluster..."
     k3d cluster delete social-feed
-    echo "✓ Cluster deleted"
+    echo " Cluster deleted"
 else
     echo "Cancelled"
 fi

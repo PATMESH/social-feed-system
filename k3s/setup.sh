@@ -1,30 +1,26 @@
 #!/bin/bash
 set -e
 
-# Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}Social Feed System - K3s Local Setup${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 
-# Check if running on macOS
 if [[ "$OSTYPE" != "darwin"* ]]; then
     echo -e "${RED}Error: This script is only for macOS${NC}"
     exit 1
 fi
 
-# Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Install Homebrew if not present
 echo -e "${YELLOW}[1/7] Checking Homebrew...${NC}"
 if ! command_exists brew; then
     echo -e "${YELLOW}Installing Homebrew...${NC}"
@@ -33,7 +29,6 @@ else
     echo -e "${GREEN}✓ Homebrew already installed${NC}"
 fi
 
-# Install kubectl
 echo -e "${YELLOW}[2/7] Checking kubectl...${NC}"
 if ! command_exists kubectl; then
     echo -e "${YELLOW}Installing kubectl...${NC}"
@@ -42,7 +37,6 @@ else
     echo -e "${GREEN}✓ kubectl already installed${NC}"
 fi
 
-# Install k3d (k3s in docker - easier for macOS)
 echo -e "${YELLOW}[3/7] Checking k3d...${NC}"
 if ! command_exists k3d; then
     echo -e "${YELLOW}Installing k3d...${NC}"
@@ -51,7 +45,6 @@ else
     echo -e "${GREEN}✓ k3d already installed${NC}"
 fi
 
-# Install Docker if not present
 echo -e "${YELLOW}[4/7] Checking Docker...${NC}"
 if ! command_exists docker; then
     echo -e "${YELLOW}Installing Docker via Homebrew...${NC}"
@@ -60,19 +53,16 @@ if ! command_exists docker; then
     exit 1
 fi
 
-# Check if Docker is running
 if ! docker info >/dev/null 2>&1; then
     echo -e "${RED}Docker is installed but not running. Please start Docker Desktop and try again.${NC}"
     exit 1
 fi
 echo -e "${GREEN}✓ Docker is running${NC}"
 
-# Note about Docker memory settings
 echo -e "${BLUE}Note: Ensure Docker Desktop is configured with at least 6GB RAM${NC}"
 echo -e "${BLUE}      (Docker Desktop > Settings > Resources > Memory)${NC}"
 echo ""
 
-# Create k3d cluster with optimized settings
 echo -e "${YELLOW}[5/7] Creating k3d cluster...${NC}"
 if k3d cluster list | grep -q "social-feed"; then
     echo -e "${YELLOW}Cluster already exists. Deleting and recreating...${NC}"
@@ -91,25 +81,38 @@ echo -e "${GREEN}✓ K3d cluster created${NC}"
 echo -e "${YELLOW}Waiting for cluster to be ready...${NC}"
 kubectl wait --for=condition=Ready nodes --all --timeout=120s
 
-# Deploy platform services
 echo -e "${YELLOW}[6/7] Deploying platform services...${NC}"
 kubectl apply -f platform-services/postgres.yaml
 kubectl apply -f platform-services/redis.yaml
 kubectl apply -f platform-services/kafka.yaml
-kubectl apply -f platform-services/cassandra.yaml
-kubectl apply -f platform-services/janusgraph.yaml
+
+# Check GRAPH_IMPL env var, default to gremlin
+GRAPH_IMPL=${GRAPH_IMPL:-neo4j}
+echo -e "${BLUE}Graph implementation selected: ${GRAPH_IMPL}${NC}"
+
+if [ "$GRAPH_IMPL" = "neo4j" ]; then
+    echo -e "${YELLOW}Deploying Neo4j...${NC}"
+    kubectl apply -f platform-services/neo4j.yaml
+else
+    echo -e "${YELLOW}Deploying JanusGraph and Cassandra...${NC}"
+    kubectl apply -f platform-services/cassandra.yaml
+    kubectl apply -f platform-services/janusgraph.yaml
+fi
 
 echo -e "${YELLOW}Waiting for platform services to be ready...${NC}"
 kubectl wait --for=condition=Ready pod -l app=postgres --timeout=180s
 kubectl wait --for=condition=Ready pod -l app=redis --timeout=120s
 kubectl wait --for=condition=Ready pod -l app=kafka --timeout=180s
-# Cassandra takes longer to start
-kubectl wait --for=condition=Ready pod -l app=cassandra --timeout=300s
-kubectl wait --for=condition=Ready pod -l app=janusgraph --timeout=300s
+
+if [ "$GRAPH_IMPL" = "neo4j" ]; then
+    kubectl wait --for=condition=Ready pod -l app=neo4j --timeout=300s
+else
+    kubectl wait --for=condition=Ready pod -l app=cassandra --timeout=300s
+    kubectl wait --for=condition=Ready pod -l app=janusgraph --timeout=300s
+fi
 
 echo -e "${GREEN}✓ Platform services deployed${NC}"
 
-# Deploy application services
 echo -e "${YELLOW}[7/7] Deploying application services...${NC}"
 
 echo -e "${YELLOW}Importing local Docker images into k3d...${NC}"
@@ -139,7 +142,10 @@ kubectl apply -f app-services/post-service.yaml
 kubectl apply -f app-services/notification-service.yaml
 kubectl apply -f app-services/ws-notification.yaml
 kubectl apply -f app-services/api-gateway.yaml
-kubectl apply -f app-services/graph-service.yaml
+
+# Deploy graph-service with correct GRAPH_IMPL
+echo -e "${YELLOW}Deploying graph-service with GRAPH_IMPL=${GRAPH_IMPL}...${NC}"
+sed "s/value: \"gremlin\"/value: \"$GRAPH_IMPL\"/g" app-services/graph-service.yaml | kubectl apply -f -
 
 
 echo -e "${YELLOW}Waiting for application services to start...${NC}"
