@@ -27,6 +27,8 @@ spec:
           value: "6379"
         - name: USER_SERVICE_URL
           value: "http://auth-service:8991"
+        - name: GRAPH_SERVICE_URL
+          value: "http://graph-service:8992"
         - name: POST_SERVICE_URL
           value: "http://post-service:8993"
         - name: NOTIFICATION_SERVICE_URL

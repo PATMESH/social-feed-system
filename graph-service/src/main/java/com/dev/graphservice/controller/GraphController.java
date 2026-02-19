@@ -46,10 +46,32 @@ public class GraphController {
         }
     }
 
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<User>>> getUsers() {
+        try {
+            List<User> users =  userService.getAllUsers();
+            return ResponseEntity.ok(ApiResponse.success("Users fetched successfully", users));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error retrieving users", e.getMessage()));
+        }
+    }
+
     @PostMapping("/follow/{toUserId}")
     public ResponseEntity<ApiResponse<Void>> followUser(@PathVariable UUID toUserId) {
         try {
             UUID fromUserId = UUID.fromString(requestContext.getUserId());
+            userService.followUser(fromUserId, toUserId, "following", requestContext.getCorrelationId());
+            return ResponseEntity.ok(ApiResponse.success("Users linked successfully", null));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Error linking users", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/follow/{toUserId}/{fromUserId}")
+    public ResponseEntity<ApiResponse<Void>> followUser(@PathVariable UUID toUserId, @PathVariable UUID fromUserId) {
+        try {
             userService.followUser(fromUserId, toUserId, "following", requestContext.getCorrelationId());
             return ResponseEntity.ok(ApiResponse.success("Users linked successfully", null));
         } catch (Exception e) {

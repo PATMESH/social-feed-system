@@ -55,10 +55,16 @@ public class EntityMapper {
                 f.setAccessible(true);
                 try {
                     Object val = f.get(entity);
+                    Direction direction = switch (edge.direction()) {
+                        case IN -> Direction.IN;
+                        case OUT -> Direction.OUT;
+                        case BOTH -> Direction.BOTH;
+                    };
+                    
                     if (val instanceof Collection<?> col) {
-                        for (Object o : col) list.add(new EdgeRelation(edge.label(), o, edge.direction()));
+                        for (Object o : col) list.add(new EdgeRelation(edge.label(), o, direction));
                     } else if (val != null) {
-                        list.add(new EdgeRelation(edge.label(), val, edge.direction()));
+                        list.add(new EdgeRelation(edge.label(), val, direction));
                     }
                 } catch (IllegalAccessException ignored) {}
             }

@@ -1,7 +1,8 @@
 package com.dev.graphservice.core;
 
+import com.dev.graphservice.enums.Direction;
 import lombok.RequiredArgsConstructor;
-import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -9,12 +10,21 @@ import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@ConditionalOnProperty(name = "graph.impl", havingValue = "gremlin", matchIfMissing = true)
 @RequiredArgsConstructor
-public class GremlinGraphRepositoryImpl implements GremlinGraphRepository {
+public class GremlinGraphRepositoryImpl implements GraphRepository {
 
     private final OGMProcessor ogmProcessor;
     private final QueryExecutionEngine queryExecution;
     private final GremlinTransactionManager tx;
+
+    private org.apache.tinkerpop.gremlin.structure.Direction toGremlinDirection(Direction direction) {
+        return switch (direction) {
+            case IN -> org.apache.tinkerpop.gremlin.structure.Direction.IN;
+            case OUT -> org.apache.tinkerpop.gremlin.structure.Direction.OUT;
+            case BOTH -> org.apache.tinkerpop.gremlin.structure.Direction.BOTH;
+        };
+    }
 
     @Override
     public <T> T save(T entity) {
@@ -145,7 +155,7 @@ public class GremlinGraphRepositoryImpl implements GremlinGraphRepository {
     @Override
     public void createEdgeBetween(Object from, Object to, String label, Direction direction) {
         tx.execute(g -> {
-            queryExecution.addEdgeBetween(g, from, to, label, direction);
+            queryExecution.addEdgeBetween(g, from, to, label, toGremlinDirection(direction));
             return null;
         });
     }
@@ -154,7 +164,7 @@ public class GremlinGraphRepositoryImpl implements GremlinGraphRepository {
     public void createEdgesBetween(Object from, List<Object> toList, String label,  Direction direction) {
         tx.execute(g -> {
             toList.parallelStream().forEach(toId -> {
-                queryExecution.addEdgeBetween(g, from, toId, label, direction);
+                queryExecution.addEdgeBetween(g, from, toId, label, toGremlinDirection(direction));
             });
             return null;
         });

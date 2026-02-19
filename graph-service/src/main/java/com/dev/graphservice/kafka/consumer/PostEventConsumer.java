@@ -3,6 +3,7 @@ package com.dev.graphservice.kafka.consumer;
 import com.dev.graphservice.kafka.event.CloudEvent;
 import com.dev.graphservice.kafka.event.PostCreatedEvent;
 import com.dev.graphservice.service.PostFanoutService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -18,13 +19,14 @@ public class PostEventConsumer {
 
     private final PostFanoutService postFanoutService;
     private final Executor fanoutExecutor;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(
             topics = "${app.kafka.topics.post-events}",
             containerFactory = "kafkaListenerContainerFactory"
     )
     public void consumeUserCreatedEvent(
-            CloudEvent<PostCreatedEvent> event,
+            CloudEvent<?> event,
             @Header("event-type") String eventType,
             @Header("correlation-id") String correlationId
     ) {
@@ -39,8 +41,8 @@ public class PostEventConsumer {
         });
     }
 
-    private PostCreatedEvent convert(CloudEvent<PostCreatedEvent> event) {
-        return event.getData();
+    private PostCreatedEvent convert(CloudEvent<?> event) {
+        return objectMapper.convertValue(event.getData(), PostCreatedEvent.class);
     }
 }
 

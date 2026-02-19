@@ -85,15 +85,31 @@ echo -e "${YELLOW}[6/7] Deploying platform services...${NC}"
 kubectl apply -f platform-services/postgres.yaml
 kubectl apply -f platform-services/redis.yaml
 kubectl apply -f platform-services/kafka.yaml
-kubectl apply -f platform-services/cassandra.yaml
-kubectl apply -f platform-services/janusgraph.yaml
+
+# Check GRAPH_IMPL env var, default to gremlin
+GRAPH_IMPL=${GRAPH_IMPL:-neo4j}
+echo -e "${BLUE}Graph implementation selected: ${GRAPH_IMPL}${NC}"
+
+if [ "$GRAPH_IMPL" = "neo4j" ]; then
+    echo -e "${YELLOW}Deploying Neo4j...${NC}"
+    kubectl apply -f platform-services/neo4j.yaml
+else
+    echo -e "${YELLOW}Deploying JanusGraph and Cassandra...${NC}"
+    kubectl apply -f platform-services/cassandra.yaml
+    kubectl apply -f platform-services/janusgraph.yaml
+fi
 
 echo -e "${YELLOW}Waiting for platform services to be ready...${NC}"
 kubectl wait --for=condition=Ready pod -l app=postgres --timeout=180s
 kubectl wait --for=condition=Ready pod -l app=redis --timeout=120s
 kubectl wait --for=condition=Ready pod -l app=kafka --timeout=180s
-kubectl wait --for=condition=Ready pod -l app=cassandra --timeout=300s
-kubectl wait --for=condition=Ready pod -l app=janusgraph --timeout=300s
+
+if [ "$GRAPH_IMPL" = "neo4j" ]; then
+    kubectl wait --for=condition=Ready pod -l app=neo4j --timeout=300s
+else
+    kubectl wait --for=condition=Ready pod -l app=cassandra --timeout=300s
+    kubectl wait --for=condition=Ready pod -l app=janusgraph --timeout=300s
+fi
 
 echo -e "${GREEN}✓ Platform services deployed${NC}"
 
@@ -126,7 +142,10 @@ kubectl apply -f app-services/post-service.yaml
 kubectl apply -f app-services/notification-service.yaml
 kubectl apply -f app-services/ws-notification.yaml
 kubectl apply -f app-services/api-gateway.yaml
-kubectl apply -f app-services/graph-service.yaml
+
+# Deploy graph-service with correct GRAPH_IMPL
+echo -e "${YELLOW}Deploying graph-service with GRAPH_IMPL=${GRAPH_IMPL}...${NC}"
+sed "s/value: \"gremlin\"/value: \"$GRAPH_IMPL\"/g" app-services/graph-service.yaml | kubectl apply -f -
 
 
 echo -e "${YELLOW}Waiting for application services to start...${NC}"

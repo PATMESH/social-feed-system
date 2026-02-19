@@ -1,6 +1,6 @@
 package com.dev.graphservice.service;
 
-import com.dev.graphservice.core.GremlinGraphRepository;
+import com.dev.graphservice.core.GraphRepository;
 import com.dev.graphservice.exception.UserNotFoundException;
 import com.dev.graphservice.kafka.event.UserCreatedEvent;
 import com.dev.graphservice.kafka.event.UserNotificationEvent;
@@ -8,7 +8,7 @@ import com.dev.graphservice.kafka.producer.KafkaEventProducer;
 import com.dev.graphservice.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tinkerpop.gremlin.structure.Direction;
+import com.dev.graphservice.enums.Direction;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +19,7 @@ import java.util.*;
 @Slf4j
 public class UserService {
 
-    private final GremlinGraphRepository repo;
+    private final GraphRepository repo;
     private final KafkaEventProducer eventProducer;
 
     @Value("${app.kafka.topics.notification-events}")
@@ -58,7 +58,7 @@ public class UserService {
     public void followUser(UUID fromUserUuid, UUID toUserUuid, String relationLabel, String correlationId) {
         Optional<User> fromUser = findByUserId(fromUserUuid);
         fromUser.orElseThrow(() -> new UserNotFoundException(fromUserUuid));
-        Object fromVertexId = fromUser.map(User::getId);
+        Object fromVertexId = fromUser.map(User::getId).orElseThrow(() -> new RuntimeException("User not found"));;
         Object toVertexId = getVertexIdByUserId(toUserUuid);
         repo.createEdgeBetween(fromVertexId, toVertexId, relationLabel, Direction.OUT);
         log.info("Created {} relation from {} -> {}", relationLabel, fromUserUuid, toUserUuid);
